@@ -3,7 +3,7 @@ import datetime as dt
 import os
 import db_conn
 import queries
-from flask import Flask, json, url_for, redirect
+from flask import Flask, json, url_for, redirect, request, jsonify, Response
 
 
 app = Flask(__name__)
@@ -17,18 +17,18 @@ USER = os.getlogin()
 
 
 # Account details
-@app.route('/Acc_Holder/<name>')
-def holder_name(name):
-    """ creating method to get Account Details"""
-    acc_object = get_holder_name(name)
+@app.route('/Acc_Holder/<name>/<password>')
+def holder_name(name, password):
+    """ creating method to get Account Details """
+    acc_object = get_holder_name(password)
     if acc_object:
         return redirect(url_for('customer_details', customername=name))
-    return "Invalid Name ,Account not found"
+    # return "Invalid password ,{} Account not found".format(name)
+    return redirect(url_for('adding_user', code=307))
 
-
-def get_holder_name(name):
+def get_holder_name(password):
     """method for account holder details"""
-    CURSOR.execute(queries.holder_name(), name)
+    CURSOR.execute(queries.holder_name(), password)
     rows = CURSOR.fetchall()
     if len(rows) == 1:
         return rows[0]
@@ -62,7 +62,7 @@ def transaction_details(name, tns_account, tns_type, amount):
                 CURSOR.commit()
                 CURSOR.execute(queries.transaction_dpt(), tns_account, tns_type, amount, DATE, USER, DATE, USER)
                 CURSOR.commit()
-                return "Amount deposited"
+                return ".....Amount deposited....."
 
             if tns_type == 'Withdraw':
                 balance = get_balance(tns_account)
@@ -72,11 +72,12 @@ def transaction_details(name, tns_account, tns_type, amount):
                 CURSOR.commit()
                 CURSOR.execute(queries.transaction_wd(), tns_account, tns_type, amount, DATE, USER, DATE, USER)
                 CURSOR.commit()
-                return " Amount withdrawn successfully "
+                return " .......Amount withdrawn successfully....... "
             return "not_found()"
 
     except Exception as e:
           print(e)
+          return "not_found"
 
 
 def get_balance(tns_account):
@@ -86,6 +87,52 @@ def get_balance(tns_account):
     if rows:
         for row in rows:
             return row
+
+
+#for Adding customers
+@app.route('/add', methods=['POST'])
+def adding_user():
+    """Adding new Customers....."""
+    try:
+        _json = request.json
+        Acc_Holder = _json['Acc_Holder']
+        Acc_no = _json['Acc_no']
+        Acc_type = _json['Acc_type']
+        Balance = _json['Balance']
+        Branch = _json['Branch']
+        password = _json['password']
+        createdat = _json['createdat']
+        createdby = _json['createdby']
+        modifiedat = _json['modifiedat']
+        modifiedby = _json['modifiedby']
+
+        if request.method == 'POST':
+            CURSOR.execute(queries.adding_details(), Acc_Holder, Acc_no, Acc_type, Balance, Branch, DATE, USER, DATE, USER, password)
+            CURSOR.commit()
+            # return "customer details added....."
+            # resp = jsonify('User added successfully!')
+            # resp.status_code = 200
+            return Response('File Updated successfully', status=200)
+        return 'not_found()'
+
+    except Exception as e:
+        print(e)
+        return 'DB error'
+
+
+# @app.route('/user/<Acc_no>')
+# def user(Acc_no):
+# 	try:
+# 		CURSOR.execute(queries.read_details(), Acc_no)
+# 		row = CURSOR.fetchone()
+# 		resp = json.dumps(row)
+# 		resp.status_code = 200
+#         # return Response('Uploaded file successfully', status=200)
+#         return  resp
+#
+# 	except Exception as e:
+# 		print(e)
+
 
 
 app.run(debug=True)
