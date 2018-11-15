@@ -90,7 +90,7 @@ def get_balance(tns_account):
 
 
 #for Adding customers
-@app.route('/add', methods=['POST'])
+@app.route('/add_u', methods=['POST'])
 def adding_user():
     """Adding new Customers....."""
     try:
@@ -100,14 +100,15 @@ def adding_user():
         Acc_type = _json['Acc_type']
         Balance = _json['Balance']
         Branch = _json['Branch']
+        createdat = DATE
+        createdby = _json['USER']
+        modifiedat = DATE
+        modifiedby = _json['USER']
         password = _json['password']
-        createdat = _json['createdat']
-        createdby = _json['createdby']
-        modifiedat = _json['modifiedat']
-        modifiedby = _json['modifiedby']
 
         if request.method == 'POST':
-            CURSOR.execute(queries.adding_details(), Acc_Holder, Acc_no, Acc_type, Balance, Branch, DATE, USER, DATE, USER, password)
+            CURSOR.execute(queries.adding_details(), Acc_Holder, Acc_no, Acc_type, Balance, Branch, createdat,
+                           createdby, modifiedat, modifiedby, password)
             CURSOR.commit()
             # return "customer details added....."
             # resp = jsonify('User added successfully!')
@@ -115,24 +116,29 @@ def adding_user():
             return Response('File Updated successfully', status=200)
         return 'not_found()'
 
+    # except KeyError as ke:
+    #     print(ke)
+    #     return str(ke)
     except Exception as e:
         print(e)
         return 'DB error'
 
 
-# @app.route('/user/<Acc_no>')
-# def user(Acc_no):
-# 	try:
-# 		CURSOR.execute(queries.read_details(), Acc_no)
-# 		row = CURSOR.fetchone()
-# 		resp = json.dumps(row)
-# 		resp.status_code = 200
-#         # return Response('Uploaded file successfully', status=200)
-#         return  resp
-#
-# 	except Exception as e:
-# 		print(e)
+@app.route('/user/<password>')
+def user(password):
+    """Reading customer details"""
+    try:
+        if request.method == 'GET':
+                CURSOR.execute(queries.read_details(), password)
+                row = CURSOR.fetchall()
+                resp = json.dumps(row)
+                print(resp)
+                resp.status_code = 200
+                return resp
+        return 'not_found()'
 
-
+    except Exception as e:
+            print(e)
+            return 'DB error'
 
 app.run(debug=True)
