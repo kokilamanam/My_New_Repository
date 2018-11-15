@@ -123,22 +123,23 @@ def adding_user():
         print(e)
         return 'DB error'
 
+#
+# @app.route('/user/')
+# def user(password):
+#     """Reading customer details"""
+#     try:
+#         if request.method == 'GET':
+#                 CURSOR.execute(queries.read_details(), password)
+#                 row = CURSOR.fetchall()
+#                 resp = json.dumps(row)
+#                 print(resp)
+#                 resp.status_code = 200
+#                 return resp
+#         return 'not_found()'
+#
+#     except Exception as e:
+#             print(e)
+#             return 'DB error'
 
-@app.route('/user/<password>')
-def user(password):
-    """Reading customer details"""
-    try:
-        if request.method == 'GET':
-                CURSOR.execute(queries.read_details(), password)
-                row = CURSOR.fetchall()
-                resp = json.dumps(row)
-                print(resp)
-                resp.status_code = 200
-                return resp
-        return 'not_found()'
-
-    except Exception as e:
-            print(e)
-            return 'DB error'
 
 app.run(debug=True)
