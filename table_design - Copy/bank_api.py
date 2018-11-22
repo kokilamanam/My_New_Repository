@@ -26,6 +26,7 @@ def holder_name(name, password):
     # return "Invalid password ,{} Account not found".format(name)
     return redirect(url_for('adding_user', code=307))
 
+
 def get_holder_name(password):
     """method for account holder details"""
     CURSOR.execute(queries.holder_name(), password)
@@ -110,15 +111,9 @@ def adding_user():
             CURSOR.execute(queries.adding_details(), Acc_Holder, Acc_no, Acc_type, Balance, Branch, createdat,
                            createdby, modifiedat, modifiedby, password)
             CURSOR.commit()
-            # return "customer details added....."
-            # resp = jsonify('User added successfully!')
-            # resp.status_code = 200
-            return Response('File Updated successfully', status=200)
+            return Response('File inserted successfully', status=200)
         return 'not_found()'
 
-    # except KeyError as ke:
-    #     print(ke)
-    #     return str(ke)
     except Exception as e:
         print(e)
         return 'DB error'
@@ -142,6 +137,59 @@ def user(password):
     except Exception as e:
             print(e)
             return 'DB error'
+
+
+@app.route('/update/<Acc_Holder>/<password>', methods=['POST'])
+def update_user():
+    try:
+        _json = request.json
+        Acc_Holder = _json['Acc_Holder']
+        Acc_no = _json['Acc_no']
+        Acc_type = _json['Acc_type']
+        Balance = _json['Balance']
+        Branch = _json['Branch']
+        createdat = DATE
+        createdby = _json['USER']
+        modifiedat = DATE
+        modifiedby = _json['USER']
+        password = _json['password']
+
+        if request.method == 'POST':
+            CURSOR.execute(queries.update_details(), Acc_Holder, Acc_no, Acc_type, Balance, Branch, createdat,
+                           createdby, modifiedat, modifiedby, password)
+            CURSOR.commit()
+            return Response('File updated successfully', status=200)
+        return 'not_found()'
+
+    except Exception as e:
+        print(e)
+        return 'DB error'
+
+
+@app.route('/delete/<Acc_no>')
+def delete_user(Acc_no):
+    try:
+        # if request.method == 'GET':
+            CURSOR.execute(queries.delete_details(), Acc_no)
+            CURSOR.commit()
+            return Response('File updated successfully', status=200)
+        # return 'not_found()'
+
+    except Exception as e:
+        print(e)
+        return 'DB error'
+
+
+@app.errorhandler(404)
+def not_found():
+    Notification = {
+        'status': 404,
+        'message': 'Not Found '
+    }
+    resp = json.dump(Notification)
+    resp.status_code = 404
+
+    return resp
 
 
 app.run(debug=True)
